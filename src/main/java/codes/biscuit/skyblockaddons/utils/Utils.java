@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
@@ -40,6 +41,7 @@ import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.*;
 import java.util.jar.JarFile;
@@ -492,6 +494,50 @@ public class Utils {
                 }
             } catch (IOException ex) {
                 FMLLog.warning("[SkyblockAddons] Failed to post event to server");
+                ex.printStackTrace();
+            }
+        }).start();
+    }
+
+    public void sendItemLogPostRequest(Collection<ItemStack> itemStacks) {
+        if(itemStacks.isEmpty()) return;
+        new Thread(() -> {
+            FMLLog.info("[SkyblockAddons] Posting " + itemStacks.size() + " items to InventiveTalent API");
+
+            try {
+                String urlString = "https://hypixel-api.inventivetalent.org/api/skyblock/auction/logItem";
+                URL url = new URL(urlString);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("User-Agent", USER_AGENT);
+                connection.setRequestProperty("Content-Type", "application/json");
+
+                Minecraft mc = Minecraft.getMinecraft();
+                if (mc != null && mc.thePlayer != null) {
+                    JsonObject postObject = new JsonObject();
+                    postObject.addProperty("isModRequest", true);
+                    postObject.addProperty("minecraftUser", mc.thePlayer.getName());
+
+                    Gson gson = new Gson();
+                    JsonArray nbtArray = new JsonArray();
+                    for (ItemStack itemStack : itemStacks) {
+                        if(itemStack==null)continue;
+                        nbtArray.add(gson.toJsonTree(itemStack.getTagCompound()));
+                    }
+                    postObject.add("nbtJson", nbtArray);
+
+
+                    String postString = gson.toJson(postObject);
+                    connection.setDoOutput(true);
+                    try (DataOutputStream out = new DataOutputStream(connection.getOutputStream())) {
+                        out.write(postString.getBytes(StandardCharsets.UTF_8));
+                        out.flush();
+                    }
+                    FMLLog.info("[SkyblockAddons] Got response code " + connection.getResponseCode());
+                    connection.disconnect();
+                }
+            } catch (IOException ex) {
+                FMLLog.warning("[SkyblockAddons] Failed to post item to server");
                 ex.printStackTrace();
             }
         }).start();
