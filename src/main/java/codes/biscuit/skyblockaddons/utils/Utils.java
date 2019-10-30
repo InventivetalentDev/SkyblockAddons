@@ -499,7 +499,7 @@ public class Utils {
         }).start();
     }
 
-    public void sendItemLogPostRequest(Collection<ItemStack> itemStacks) {
+    public void sendItemLogPostRequest(Collection<ItemStack> itemStacks, ItemCategory category) {
         if(itemStacks.isEmpty()) return;
         new Thread(() -> {
             FMLLog.info("[SkyblockAddons] Posting " + itemStacks.size() + " items to InventiveTalent API");
@@ -525,6 +525,8 @@ public class Utils {
                         nbtArray.add(gson.toJsonTree(itemStack.getTagCompound()));
                     }
                     postObject.add("nbtJson", nbtArray);
+
+                    postObject.addProperty("category", category.name());
 
 
                     String postString = gson.toJson(postObject);

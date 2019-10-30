@@ -674,25 +674,26 @@ public class PlayerListener {
 				Container slots = chest.inventorySlots;
 				List<Slot> slotList = slots.inventorySlots;
 
-
 				if (slotList.size() > 50) {// Large chest should have 54 slots
 					Slot topRightSlot = slots.getSlot(8);
-					if (topRightSlot != null&&topRightSlot.getHasStack()) {
+					if (topRightSlot != null && topRightSlot.getHasStack()) {
 						ItemStack topRightItem = topRightSlot.getStack();
 						if (topRightItem != null) {
 							if (topRightItem.hasDisplayName() && " ".equals(topRightItem.getDisplayName())) {
 								// Pretty sure it's an auction house gui
 
-								Set<ItemStack> itemStacks = new HashSet<>();
+								int glassDamage = topRightItem.getItemDamage();
+								ItemCategory category = ItemCategory.byColor(glassDamage);
 
+								Set<ItemStack> itemStacks = new HashSet<>();
 								for (int i = 10; i < 54; i++) {// Limiting it to 54, since the slots include the player's inventory
 									if (i != 18 && i != 27 && i != 36 && i != 45) {
 										Slot slot = slots.getSlot(i);
-										if (slot != null&&slot.getHasStack()) {
+										if (slot != null && slot.getHasStack()) {
 											ItemStack itemStack = slot.getStack();
-											if (itemStack!=null&&itemStack.hasDisplayName() && !" ".equals(itemStack.getDisplayName())) {
+											if (itemStack != null && itemStack.hasDisplayName() && !" ".equals(itemStack.getDisplayName())) {
 												int hideFlags = itemStack.getTagCompound().getInteger("HideFlags");
-												if(hideFlags>128) {// Seems to always be 254 for actual, obtainable items
+												if (hideFlags > 128) {// Seems to always be 254 for actual, obtainable items
 													itemStacks.add(itemStack);
 												}
 											}
@@ -700,7 +701,7 @@ public class PlayerListener {
 									}
 								}
 
-								main.getUtils().sendItemLogPostRequest(itemStacks);
+								main.getUtils().sendItemLogPostRequest(itemStacks, category);
 							}
 						}
 					}
