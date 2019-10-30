@@ -526,7 +526,7 @@ public class Utils {
                     }
                     postObject.add("nbtJson", nbtArray);
 
-                    postObject.addProperty("category", category.name());
+                    if(category != null) postObject.addProperty("category", category.name());
 
 
                     String postString = gson.toJson(postObject);
